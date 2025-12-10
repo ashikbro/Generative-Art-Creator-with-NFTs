@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import './App.css';
@@ -6,7 +6,6 @@ import './App.css';
 function App() {
   // State variables
   const [account, setAccount] = useState('');
-  const [provider, setProvider] = useState(null);
   const [contract, setContract] = useState(null);
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('vivid');
@@ -55,7 +54,6 @@ function App() {
       const signer = await web3Provider.getSigner();
       
       setAccount(accounts[0]);
-      setProvider(web3Provider);
       
       // Initialize contract if address is set
       if (contractAddress !== "0x0000000000000000000000000000000000000000") {
