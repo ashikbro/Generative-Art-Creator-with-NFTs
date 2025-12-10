@@ -135,7 +135,12 @@ describe("GenerativeArtNFT", function () {
       
       const tx = await nft.connect(addr2).buyArt(1, { value: excessPrice });
       const receipt = await tx.wait();
-      const gasUsed = receipt!.gasUsed * tx.gasPrice!;
+      
+      if (!receipt || !tx.gasPrice) {
+        throw new Error("Transaction receipt or gas price is null");
+      }
+      
+      const gasUsed = receipt.gasUsed * tx.gasPrice;
       
       const finalBalance = await ethers.provider.getBalance(addr2Address);
       const expectedBalance = initialBalance - price - gasUsed;

@@ -2,16 +2,16 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
  * @title GenerativeArtNFT
  * @dev NFT contract for minting and selling generative art
+ * @notice Uses ERC721Enumerable for efficient token enumeration
  */
-contract GenerativeArtNFT is ERC721URIStorage, Ownable {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
+contract GenerativeArtNFT is ERC721URIStorage, ERC721Enumerable, Ownable {
+    uint256 private _nextTokenId;
     
     // Mapping from token ID to price
     mapping(uint256 => uint256) public tokenPrices;
@@ -25,7 +25,9 @@ contract GenerativeArtNFT is ERC721URIStorage, Ownable {
     event ArtUnlisted(uint256 indexed tokenId);
     event ArtSold(uint256 indexed tokenId, address indexed from, address indexed to, uint256 price);
     
-    constructor() ERC721("GenerativeArtNFT", "GANFT") Ownable(msg.sender) {}
+    constructor() ERC721("GenerativeArtNFT", "GANFT") Ownable(msg.sender) {
+        _nextTokenId = 1; // Start token IDs from 1
+    }
     
     /**
      * @dev Mint a new NFT with the given token URI
@@ -33,15 +35,14 @@ contract GenerativeArtNFT is ERC721URIStorage, Ownable {
      * @return The token ID of the newly minted NFT
      */
     function mintArt(string memory tokenURI) public returns (uint256) {
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+        uint256 tokenId = _nextTokenId++;
         
-        _safeMint(msg.sender, newTokenId);
-        _setTokenURI(newTokenId, tokenURI);
+        _safeMint(msg.sender, tokenId);
+        _setTokenURI(tokenId, tokenURI);
         
-        emit ArtMinted(newTokenId, msg.sender, tokenURI);
+        emit ArtMinted(tokenId, msg.sender, tokenURI);
         
-        return newTokenId;
+        return tokenId;
     }
     
     /**
@@ -108,27 +109,57 @@ contract GenerativeArtNFT is ERC721URIStorage, Ownable {
      * @dev Get the total number of minted NFTs
      * @return The total supply
      */
-    function totalSupply() public view returns (uint256) {
-        return _tokenIds.current();
+    function totalSupply() public view override(ERC721Enumerable) returns (uint256) {
+        return ERC721Enumerable.totalSupply();
     }
     
     /**
-     * @dev Get all NFTs owned by an address
+     * @dev Get all NFTs owned by an address using ERC721Enumerable
      * @param owner The address to query
      * @return An array of token IDs
      */
     function tokensOfOwner(address owner) public view returns (uint256[] memory) {
         uint256 tokenCount = balanceOf(owner);
         uint256[] memory tokens = new uint256[](tokenCount);
-        uint256 index = 0;
         
-        for (uint256 i = 1; i <= _tokenIds.current(); i++) {
-            if (_ownerOf(i) == owner) {
-                tokens[index] = i;
-                index++;
-            }
+        for (uint256 i = 0; i < tokenCount; i++) {
+            tokens[i] = tokenOfOwnerByIndex(owner, i);
         }
         
         return tokens;
+    }
+    
+    // Required overrides for multiple inheritance
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        override(ERC721, ERC721Enumerable)
+        returns (address)
+    {
+        return super._update(to, tokenId, auth);
+    }
+
+    function _increaseBalance(address account, uint128 value)
+        internal
+        override(ERC721, ERC721Enumerable)
+    {
+        super._increaseBalance(account, value);
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721URIStorage, ERC721Enumerable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }
