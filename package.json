@@ -1,0 +1,26 @@
+{
+  "name": "generative-art-creator-with-nfts",
+  "version": "1.0.0",
+  "description": "A generative art platform where users create, customize, and tokenize artwork as NFTs.",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.ts",
+    "node": "hardhat node",
+    "client": "cd client && npm start",
+    "client:build": "cd client && npm run build",
+    "client:install": "cd client && npm install"
+  },
+  "keywords": ["nft", "generative-art", "dalle", "ethereum", "blockchain", "react"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "@types/node": "^24.10.2",
+    "hardhat": "^3.0.17",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "type": "module"
+}
